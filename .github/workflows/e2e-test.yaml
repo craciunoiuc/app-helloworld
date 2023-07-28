@@ -1,0 +1,38 @@
+name: app/helloworld
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+    paths:
+    - '.github/workflows/e2e-test.yaml'
+
+jobs:
+  build-and-run:
+    strategy:
+      matrix:
+        include:
+        - version: latest
+          name: helloworld
+          arch: x86_64
+          plat: qemu
+          latest: true
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: craciunoiuc/kraftkit@staging
+      with:
+        workdir: .
+        arch: ${{ matrix.arch }}
+        plat: ${{ matrix.plat }}
+        name: ${{ matrix.name }}
+        execute: true
+        push: false
+        output: oci://index.unikraft.io/unikraft.org/${{ matrix.name }}:${{ matrix.version }}
+        kconfig: true
